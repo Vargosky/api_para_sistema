@@ -18,10 +18,18 @@ const registrarUsuario = async (req, res) => {
       nombre,
       email,
       password: passwordHash,
+      verificado: false // 👈 muy importante
     });
 
     await nuevoUsuario.save();
-    res.status(201).json({ mensaje: 'Usuario creado exitosamente' });
+
+    // Aquí podrías generar un token de verificación y enviar correo
+    // Por ahora solo simulamos con un mensaje
+    console.log(`🔐 Usuario creado. Aún no verificado: ${email}`);
+
+    res.status(201).json({
+      mensaje: 'Usuario creado exitosamente. Revisa tu correo para confirmar tu cuenta.'
+    });
   } catch (err) {
     console.error('Error al crear usuario:', err);
     res.status(500).json({ error: 'Error al crear el usuario' });
@@ -36,6 +44,11 @@ const loginUsuario = async (req, res) => {
     const usuario = await Usuario.findOne({ email });
     if (!usuario) {
       return res.status(400).json({ error: 'Usuario no encontrado' });
+    }
+
+    // ⚠️ Validar verificación de correo
+    if (!usuario.verificado) {
+      return res.status(403).json({ error: 'Debes verificar tu correo antes de iniciar sesión' });
     }
 
     const passwordValida = await bcrypt.compare(password, usuario.password);
