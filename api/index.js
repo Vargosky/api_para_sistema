@@ -5,6 +5,7 @@ const cors = require('cors');
 const app = express();
 
 dotenv.config();
+const connectToDatabase = require('../lib/db')
 
 // 🛡️ Habilitar CORS
 app.use(cors());
