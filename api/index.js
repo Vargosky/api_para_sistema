@@ -90,4 +90,16 @@ app.listen(PORT, () => {
   console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
 });
 
+// Obtener todos los usuarios (solo si estás autenticado)
+app.get('/api/usuarios', auth, async (req, res) => {
+  try {
+    const usuarios = await Usuario.find().select('-password'); // excluye el campo password
+    res.json(usuarios);
+  } catch (err) {
+    console.error('Error al listar usuarios:', err);
+    res.status(500).json({ error: 'Error al obtener los usuarios' });
+  }
+});
+
+
 module.exports = app;
