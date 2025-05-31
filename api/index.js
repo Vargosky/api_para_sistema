@@ -20,6 +20,13 @@ mongoose.connection.once('open', () => {
 const usuariosRoutes = require('../routes/usuarios');
 
 // Usar rutas
+
+app.get('/', (req, res) => {
+  res.redirect('https://generador-rubricas-ia.vercel.app/');
+});
+
+
+
 app.use('/api/usuarios', usuariosRoutes);
 
 // Ruta pública de prueba
