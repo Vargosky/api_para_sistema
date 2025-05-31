@@ -7,11 +7,11 @@ const app = express();
 dotenv.config();
 
 // 🛡️ Habilitar CORS
-app.use(cors({
-  origin: ['https://generador-rubricas-ia.vercel.app'], // frontend permitido
-}));
+app.use(cors());
 
 app.use(express.json());
+
+connectToDatabase(); //asegurar conexion a la base de datos
 
 // Conexión a MongoDB
 mongoose.connect(process.env.MONGODB_URI)
