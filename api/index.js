@@ -1,9 +1,16 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const cors = require('cors');
 const app = express();
 
 dotenv.config();
+
+// 🛡️ Habilitar CORS
+app.use(cors({
+  origin: ['https://generador-rubricas-ia.vercel.app'], // frontend permitido
+}));
+
 app.use(express.json());
 
 // Conexión a MongoDB
@@ -11,7 +18,6 @@ mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('🟢 Conectado a MongoDB'))
   .catch(err => console.error('🔴 Error al conectar a MongoDB:', err));
 
-// Confirmar nombre de la base conectada (opcional)
 mongoose.connection.once('open', () => {
   console.log('🧠 Base de datos conectada a:', mongoose.connection.name);
 });
@@ -19,14 +25,12 @@ mongoose.connection.once('open', () => {
 // Importar rutas
 const usuariosRoutes = require('../routes/usuarios');
 
-// Usar rutas
-
+// Redirección de la raíz
 app.get('/', (req, res) => {
   res.redirect('https://generador-rubricas-ia.vercel.app/');
 });
 
-
-
+// Usar rutas
 app.use('/api/usuarios', usuariosRoutes);
 
 // Ruta pública de prueba
@@ -34,7 +38,7 @@ app.get('/api', (req, res) => {
   res.json({ mensaje: 'API operativa desde Vercel + MongoDB' });
 });
 
-// Escuchar localmente solo si se ejecuta con node
+// Servidor local (solo en desarrollo)
 if (require.main === module) {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
@@ -42,5 +46,4 @@ if (require.main === module) {
   });
 }
 
-// Exportar para que Vercel lo use como función serverless
 module.exports = app;
