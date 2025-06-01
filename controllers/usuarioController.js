@@ -24,14 +24,16 @@ const registrarUsuario = async (req, res) => {
 
     await nuevoUsuario.save();
 
-    // ✅ Crear token de verificación
+    // 🔐 Generar token de verificación
     const token = jwt.sign(
-      { id: nuevoUsuario._id, email: nuevoUsuario.email },
+      { id: nuevoUsuario._id },
       process.env.JWT_SECRET,
       { expiresIn: '1d' }
     );
 
-    // ✉️ Configurar transporte SMTP
+    const urlVerificacion = `https://tudominio.com/api/usuarios/verificar/${token}`;
+
+    // ✉️ Configurar transporte de correo
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -40,24 +42,20 @@ const registrarUsuario = async (req, res) => {
       }
     });
 
-    const urlVerificacion = `${process.env.BASE_URL}/api/usuarios/verificar/${token}`;
-
-    const mailOptions = {
-      from: `EduCommand <${process.env.EMAIL_USER}>`,
-      to: nuevoUsuario.email,
-      subject: 'Confirma tu cuenta en EduCommand',
+    await transporter.sendMail({
+      from: `"EduCommand" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: 'Confirma tu cuenta',
       html: `
-        <h2>Hola ${nombre}</h2>
-        <p>Gracias por registrarte. Por favor haz clic en el siguiente enlace para verificar tu cuenta:</p>
-        <a href="${urlVerificacion}">Verificar mi cuenta</a>
+        <h2>Hola ${nombre},</h2>
+        <p>Gracias por registrarte. Por favor haz clic en el siguiente enlace para confirmar tu cuenta:</p>
+        <a href="${urlVerificacion}" target="_blank">Verificar cuenta</a>
         <p>Este enlace expirará en 24 horas.</p>
       `
-    };
-
-    await transporter.sendMail(mailOptions);
+    });
 
     res.status(201).json({
-      mensaje: 'Usuario creado. Revisa tu correo para confirmar tu cuenta.'
+      mensaje: 'Usuario creado exitosamente. Revisa tu correo para confirmar tu cuenta.'
     });
 
   } catch (err) {
