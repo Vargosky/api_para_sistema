@@ -31,7 +31,7 @@ const registrarUsuario = async (req, res) => {
       { expiresIn: '1d' }
     );
 
-    const urlVerificacion = `https://tudominio.com/api/usuarios/verificar/${token}`;
+    const urlVerificacion = `${process.env.BASE_URL}/api/usuarios/verificar/${token}`;
 
     // ✉️ Configurar transporte de correo
     const transporter = nodemailer.createTransport({
