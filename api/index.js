@@ -1,3 +1,4 @@
+// api/index.js
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
@@ -12,38 +13,35 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-async function bootstrap() {
-  try {
-    // 🔌 Esperar conexión a MongoDB
-    await connectToDatabase();
-    console.log('🧠 Conexión con MongoDB lista');
+// ✅ Rutas
+app.use('/api/usuarios', usuariosRoutes);
 
-    // ✅ Rutas principales
-    app.use('/api/usuarios', usuariosRoutes);
+// 🧪 Ruta de prueba
+app.get('/api', (req, res) => {
+  res.json({ mensaje: '✅ API operativa desde Vercel + MongoDB Atlas' });
+});
 
-    // 🧪 Ruta de test
-    app.get('/api', (req, res) => {
-      res.json({ mensaje: '✅ API operativa desde Vercel + MongoDB Atlas' });
+// 🌐 Redirección a frontend
+app.get('/', (req, res) => {
+  res.redirect('https://generador-rubricas-ia.vercel.app/');
+});
+
+// 🔁 Ejecuta servidor local solo en desarrollo
+if (require.main === module) {
+  connectToDatabase().then(() => {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+      console.log(`🚀 Servidor local en http://localhost:${PORT}`);
     });
-
-    // 🌐 Redirección a frontend
-    app.get('/', (req, res) => {
-      res.redirect('https://generador-rubricas-ia.vercel.app/');
-    });
-
-    // 🔁 Ejecuta servidor local solo en desarrollo
-    if (require.main === module) {
-      const PORT = process.env.PORT || 3000;
-      app.listen(PORT, () => {
-        console.log(`🚀 Servidor local en http://localhost:${PORT}`);
-      });
-    }
-  } catch (err) {
-    console.error('❌ Error al inicializar la app:', err.message);
+  }).catch((err) => {
+    console.error('❌ Error al conectar en local:', err.message);
     process.exit(1);
-  }
+  });
+} else {
+  // 👉 Exporta como función serverless para Vercel
+  module.exports = async (req, res) => {
+    await connectToDatabase();
+    return app(req, res);
+  };
 }
 
-bootstrap();
-
-module.exports = app;
