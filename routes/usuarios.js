@@ -39,6 +39,7 @@ router.get('/verificar/:token', async (req, res) => {
   }
 });
 
+//funcion para probar el correo
 router.get('/test-email', async (req, res) => {
   try {
     // Transporter de nodemailer
