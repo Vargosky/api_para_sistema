@@ -7,21 +7,13 @@ const registrarUsuario = async (req, res) => {
   try {
     const { nombre, email, password } = req.body;
 
-    // Validación básica
-    if (!nombre || !email || !password) {
-      return res.status(400).json({ error: 'Todos los campos son obligatorios' });
-    }
-
-    // Buscar si ya existe el correo
     const usuarioExistente = await Usuario.findOne({ email });
     if (usuarioExistente) {
       return res.status(400).json({ error: 'El email ya está registrado' });
     }
 
-    // Hashear la contraseña
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Crear nuevo usuario (por defecto verificado en false)
     const nuevoUsuario = new Usuario({
       nombre,
       email,
@@ -31,15 +23,45 @@ const registrarUsuario = async (req, res) => {
 
     await nuevoUsuario.save();
 
-    // Aquí podrías enviar un correo con token de confirmación si quisieras
-    console.log(`🔐 Usuario creado. Aún no verificado: ${email}`);
+    // ✅ Crear token de verificación
+    const token = jwt.sign(
+      { id: nuevoUsuario._id, email: nuevoUsuario.email },
+      process.env.JWT_SECRET,
+      { expiresIn: '1d' }
+    );
+
+    // ✉️ Configurar transporte SMTP
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
+
+    const urlVerificacion = `${process.env.BASE_URL}/api/usuarios/verificar/${token}`;
+
+    const mailOptions = {
+      from: `EduCommand <${process.env.EMAIL_USER}>`,
+      to: nuevoUsuario.email,
+      subject: 'Confirma tu cuenta en EduCommand',
+      html: `
+        <h2>Hola ${nombre}</h2>
+        <p>Gracias por registrarte. Por favor haz clic en el siguiente enlace para verificar tu cuenta:</p>
+        <a href="${urlVerificacion}">Verificar mi cuenta</a>
+        <p>Este enlace expirará en 24 horas.</p>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
 
     res.status(201).json({
-      mensaje: 'Usuario creado exitosamente. Revisa tu correo para confirmar tu cuenta.'
+      mensaje: 'Usuario creado. Revisa tu correo para confirmar tu cuenta.'
     });
+
   } catch (err) {
-    console.error('❌ Error al crear usuario:', err);
-    res.status(500).json({ error: 'Error al crear el usuario' });
+    console.error('Error al registrar usuario:', err);
+    res.status(500).json({ error: 'Error al registrar usuario' });
   }
 };
 
