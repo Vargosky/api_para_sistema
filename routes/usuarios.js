@@ -53,7 +53,7 @@ router.get('/test-email', async (req, res) => {
     // Configuración del correo
     const mailOptions = {
       from: `"Sistema de Prueba" <${process.env.EMAIL_USER}>`,
-      to: "tucorreo@ejemplo.com", // reemplázalo por uno tuyo para probar
+      to: "vargosky@gmail.com", // reemplázalo por uno tuyo para probar
       subject: "✅ Sistema funcionando",
       text: "Este es un correo de prueba enviado desde la API. Todo está bien.",
     };
