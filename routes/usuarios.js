@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const nodemailer = require("nodemailer");
+const dotenv = require('dotenv');
 
 const {
   registrarUsuario,
@@ -65,6 +66,7 @@ router.get('/test-email', async (req, res) => {
     console.error("❌ Error al enviar el correo:", err);
     res.status(500).json({ error: "Error al enviar el correo" });
   }
+
 });
 
 
