@@ -1,4 +1,3 @@
-// api/index.js
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
@@ -15,15 +14,16 @@ app.use(express.json());
 
 async function bootstrap() {
   try {
-    // 🔌 Conexión a MongoDB
+    // 🔌 Esperar conexión a MongoDB
     await connectToDatabase();
+    console.log('🧠 Conexión con MongoDB lista');
 
-    // ✅ Rutas protegidas después de conectar a la BD
+    // ✅ Rutas principales
     app.use('/api/usuarios', usuariosRoutes);
 
-    // 🧪 Ruta de prueba
+    // 🧪 Ruta de test
     app.get('/api', (req, res) => {
-      res.json({ mensaje: 'API operativa desde Vercel + MongoDB Atlas' });
+      res.json({ mensaje: '✅ API operativa desde Vercel + MongoDB Atlas' });
     });
 
     // 🌐 Redirección a frontend
@@ -31,16 +31,16 @@ async function bootstrap() {
       res.redirect('https://generador-rubricas-ia.vercel.app/');
     });
 
-    // 🔁 Solo ejecuta servidor si estás en desarrollo (localhost)
+    // 🔁 Ejecuta servidor local solo en desarrollo
     if (require.main === module) {
       const PORT = process.env.PORT || 3000;
       app.listen(PORT, () => {
-        console.log(`🚀 Servidor local escuchando en http://localhost:${PORT}`);
+        console.log(`🚀 Servidor local en http://localhost:${PORT}`);
       });
     }
   } catch (err) {
-    console.error('❌ Error al inicializar la app:', err);
-    process.exit(1); // sale si falla al conectar
+    console.error('❌ Error al inicializar la app:', err.message);
+    process.exit(1);
   }
 }
 

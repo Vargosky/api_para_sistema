@@ -1,4 +1,3 @@
-//usuarioController.js
 const Usuario = require('../models/Usuario');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
@@ -8,31 +7,38 @@ const registrarUsuario = async (req, res) => {
   try {
     const { nombre, email, password } = req.body;
 
+    // Validación básica
+    if (!nombre || !email || !password) {
+      return res.status(400).json({ error: 'Todos los campos son obligatorios' });
+    }
+
+    // Buscar si ya existe el correo
     const usuarioExistente = await Usuario.findOne({ email });
     if (usuarioExistente) {
       return res.status(400).json({ error: 'El email ya está registrado' });
     }
 
+    // Hashear la contraseña
     const passwordHash = await bcrypt.hash(password, 10);
 
+    // Crear nuevo usuario (por defecto verificado en false)
     const nuevoUsuario = new Usuario({
       nombre,
       email,
       password: passwordHash,
-      verificado: false // 👈 muy importante
+      verificado: false
     });
 
     await nuevoUsuario.save();
 
-    // Aquí podrías generar un token de verificación y enviar correo
-    // Por ahora solo simulamos con un mensaje
+    // Aquí podrías enviar un correo con token de confirmación si quisieras
     console.log(`🔐 Usuario creado. Aún no verificado: ${email}`);
 
     res.status(201).json({
       mensaje: 'Usuario creado exitosamente. Revisa tu correo para confirmar tu cuenta.'
     });
   } catch (err) {
-    console.error('Error al crear usuario:', err);
+    console.error('❌ Error al crear usuario:', err);
     res.status(500).json({ error: 'Error al crear el usuario' });
   }
 };
@@ -42,12 +48,15 @@ const loginUsuario = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email y contraseña son requeridos' });
+    }
+
     const usuario = await Usuario.findOne({ email });
     if (!usuario) {
       return res.status(400).json({ error: 'Usuario no encontrado' });
     }
 
-    // ⚠️ Validar verificación de correo
     if (!usuario.verificado) {
       return res.status(403).json({ error: 'Debes verificar tu correo antes de iniciar sesión' });
     }
@@ -72,7 +81,7 @@ const loginUsuario = async (req, res) => {
       }
     });
   } catch (err) {
-    console.error('Error al iniciar sesión:', err);
+    console.error('❌ Error al iniciar sesión:', err);
     res.status(500).json({ error: 'Error al iniciar sesión' });
   }
 };
@@ -83,7 +92,7 @@ const listarUsuarios = async (req, res) => {
     const usuarios = await Usuario.find().select('-password');
     res.json(usuarios);
   } catch (err) {
-    console.error('Error al listar usuarios:', err);
+    console.error('❌ Error al listar usuarios:', err);
     res.status(500).json({ error: 'Error al obtener los usuarios' });
   }
 };
