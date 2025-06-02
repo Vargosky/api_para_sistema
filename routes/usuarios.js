@@ -3,6 +3,9 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const nodemailer = require("nodemailer");
 const dotenv = require('dotenv');
+const jwt = require('jsonwebtoken');
+const Usuario = require('../models/Usuario');
+
 
 const {
   registrarUsuario,
@@ -20,22 +23,38 @@ router.post('/login', loginUsuario);
 router.get('/', auth, listarUsuarios);
 
 router.get('/verificar/:token', async (req, res) => {
-  try {
-    const { token } = req.params;
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const usuario = await Usuario.findById(decoded.id);
+  const { token } = req.params;
 
+  if (!token) {
+    return res.status(400).send("Token no proporcionado.");
+  }
+
+  try {
+    // Verificar el token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Buscar usuario
+    const usuario = await Usuario.findById(decoded.id);
     if (!usuario) {
-      return res.status(404).send("Usuario no encontrado");
+      return res.status(404).send("❌ Usuario no encontrado.");
+    }
+
+    if (usuario.verificado) {
+      return res.send("✅ Tu cuenta ya estaba verificada.");
     }
 
     usuario.verificado = true;
     await usuario.save();
 
-    res.send("✅ Cuenta verificada correctamente. Ya puedes iniciar sesión.");
+    return res.send("✅ Cuenta verificada correctamente. Ya puedes iniciar sesión.");
   } catch (err) {
-    console.error(err);
-    res.status(400).send("Token inválido o expirado");
+    console.error("❌ Error al verificar token:", err.message);
+
+    if (err.name === 'TokenExpiredError') {
+      return res.status(400).send("⚠️ El enlace ha expirado. Solicita uno nuevo.");
+    }
+
+    return res.status(400).send("❌ Token inválido.");
   }
 });
 
