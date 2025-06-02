@@ -118,8 +118,77 @@ const listarUsuarios = async (req, res) => {
   }
 };
 
+const verificarUsuario = async (req, res) => {
+  const { token } = req.params;
+
+  if (!token) {
+    return res.status(400).send("Token no proporcionado.");
+  }
+
+  try {
+    // Verificar el token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // Buscar usuario
+    const usuario = await Usuario.findById(decoded.id);
+    if (!usuario) {
+      return res.status(404).send("❌ Usuario no encontrado.");
+    }
+
+    if (usuario.verificado) {
+      return res.send("✅ Tu cuenta ya estaba verificada.");
+    }
+
+    usuario.verificado = true;
+    await usuario.save();
+
+    return res.send("✅ Cuenta verificada correctamente. Ya puedes iniciar sesión.");
+  } catch (err) {
+    console.error("❌ Error al verificar token:", err.message);
+
+    if (err.name === 'TokenExpiredError') {
+      return res.status(400).send("⚠️ El enlace ha expirado. Solicita uno nuevo.");
+    }
+
+    return res.status(400).send("❌ Token inválido.");
+  }
+}
+
+const testEmail = async (req, res) => async (req, res) => {
+  try {
+    // Transporter de nodemailer
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    // Configuración del correo
+    const mailOptions = {
+      from: `"Sistema de Prueba" <${process.env.EMAIL_USER}>`,
+      to: "vargosky@gmail.com", // reemplázalo por uno tuyo para probar
+      subject: "✅ Sistema funcionando",
+      text: "Este es un correo de prueba enviado desde la API. Todo está bien.",
+    };
+
+    // Enviar correo
+    await transporter.sendMail(mailOptions);
+
+    res.json({ mensaje: "✅ Correo de prueba enviado correctamente" });
+  } catch (err) {
+    console.error("❌ Error al enviar el correo:", err);
+    res.status(500).json({ error: "Error al enviar el correo" });
+  }
+};
+
+
+
 module.exports = {
   registrarUsuario,
   loginUsuario,
-  listarUsuarios
+  listarUsuarios,
+  verificarUsuario,
+  testEmail
 };
