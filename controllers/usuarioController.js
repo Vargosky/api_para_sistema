@@ -2,6 +2,7 @@ const Usuario = require('../models/Usuario');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
+const enviarCorreoVerificacion = require('../lib/email');
 
 // 📌 Registrar nuevo usuario
 const registrarUsuario = async (req, res) => {
@@ -192,24 +193,16 @@ const reenviarCorreo = async (req, res) => {
     if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
     if (usuario.verificado) return res.status(400).json({ error: 'Usuario ya está verificado' });
 
-    // 👉 DEBUG: ¿existe la variable?
-    if (!process.env.JWT_SECRET) {
-      throw new Error('JWT_SECRET no definido en variables de entorno');
-    }
-
     const token = jwt.sign({ id: usuario._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
     const enlace = `${process.env.BASE_URL || 'https://api-para-sistema.vercel.app'}/api/usuarios/verificar/${token}`;
-
-    // 👉 DEBUG: loguea antes de enviar
-    console.log('Reenviando a:', usuario.email, 'link:', enlace);
 
     await enviarCorreoVerificacion(usuario.email, enlace);
 
     res.json({ mensaje: 'Correo de verificación reenviado correctamente' });
   } catch (error) {
-    console.error('Error real al reenviar:', error);
-    res.status(500).json({ error: error.message }); // ← mostrar detalle temporalmente
+    console.error('Error al reenviar:', error);
+    res.status(500).json({ error: 'Error al reenviar el correo' });
   }
 };
 
