@@ -184,20 +184,51 @@ const testEmail = async (req, res) => async (req, res) => {
 };
 
 const reenviarCorreo = async (req, res) => {
-  const { email } = req.params;
+  try {
+    const { email } = req.body;
 
-  if (!email) {
-    return res.status(400).json({ error: 'Email es requerido' });
-  }
+    // Verifica que el email se haya recibido
+    if (!email) {
+      return res.status(400).json({ error: 'Email es requerido' });
+    }
 
-  const usuario = await Usuario.findOne({ email });
+    // Busca al usuario en la base de datos
+    const usuario = await Usuario.findOne({ email });
+
+    if (!usuario) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    if (usuario.verificado) {
+      return res.status(400).json({ error: 'Usuario ya está verificado' });
+    }
+
+    // Genera un nuevo token
+    const token = jwt.sign({ id: usuario._id }, process.env.JWT_SECRET, {
+      expiresIn: '1h',
+    });
+
+    // Arma el enlace de verificación
+    const enlace = `https://api-para-sistema-git-estructura-modular-vargoskys-projects.vercel.app/api/usuarios/verificar/${token}`;
+
+    // Envía el correo (usa tu función ya existente de envío)
+    await enviarCorreoVerificacion(usuario.email, enlace);
+
+    res.json({ mensaje: 'Correo de verificación reenviado correctamente' });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error al reenviar el correo' });
+  };
 
 }
+
 
 module.exports = {
   registrarUsuario,
   loginUsuario,
   listarUsuarios,
   verificarUsuario,
-  testEmail
+  testEmail,
+  reenviarCorreo
 };
