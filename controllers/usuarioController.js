@@ -183,7 +183,16 @@ const testEmail = async (req, res) => async (req, res) => {
   }
 };
 
+const reenviarCorreo = async (req, res) => {
+  const { email } = req.params;
 
+  if (!email) {
+    return res.status(400).json({ error: 'Email es requerido' });
+  }
+
+  const usuario = await Usuario.findOne({ email });
+
+}
 
 module.exports = {
   registrarUsuario,
