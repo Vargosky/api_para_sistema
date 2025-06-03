@@ -31,7 +31,7 @@ const registrarUsuario = async (req, res) => {
       { expiresIn: '1d' }
     );
 
-    const urlVerificacion = `https://api-para-sistema-git-estructura-modular-vargoskys-projects.vercel.app/api/usuarios/verificar/${token}`;
+    const urlVerificacion = `https://api-para-sistema.vercel.app//api/usuarios/verificar/${token}`;
 
     // ✉️ Configurar transporte de correo
     const transporter = nodemailer.createTransport({
@@ -209,7 +209,7 @@ const reenviarCorreo = async (req, res) => {
     });
 
     // Arma el enlace de verificación
-    const enlace = `https://api-para-sistema-git-estructura-modular-vargoskys-projects.vercel.app/api/usuarios/verificar/${token}`;
+    const enlace = `https://api-para-sistema.vercel.app//api/usuarios/verificar/${token}`;
 
     // Envía el correo (usa tu función ya existente de envío)
     await enviarCorreoVerificacion(usuario.email, enlace);
