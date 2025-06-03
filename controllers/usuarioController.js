@@ -186,42 +186,33 @@ const testEmail = async (req, res) => async (req, res) => {
 const reenviarCorreo = async (req, res) => {
   try {
     const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email es requerido' });
 
-    // Verifica que el email se haya recibido
-    if (!email) {
-      return res.status(400).json({ error: 'Email es requerido' });
-    }
-
-    // Busca al usuario en la base de datos
     const usuario = await Usuario.findOne({ email });
+    if (!usuario) return res.status(404).json({ error: 'Usuario no encontrado' });
+    if (usuario.verificado) return res.status(400).json({ error: 'Usuario ya está verificado' });
 
-    if (!usuario) {
-      return res.status(404).json({ error: 'Usuario no encontrado' });
+    // 👉 DEBUG: ¿existe la variable?
+    if (!process.env.JWT_SECRET) {
+      throw new Error('JWT_SECRET no definido en variables de entorno');
     }
 
-    if (usuario.verificado) {
-      return res.status(400).json({ error: 'Usuario ya está verificado' });
-    }
+    const token = jwt.sign({ id: usuario._id }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-    // Genera un nuevo token
-    const token = jwt.sign({ id: usuario._id }, process.env.JWT_SECRET, {
-      expiresIn: '1h',
-    });
+    const enlace = `${process.env.BASE_URL || 'https://api-para-sistema.vercel.app'}/api/usuarios/verificar/${token}`;
 
-    // Arma el enlace de verificación
-    const enlace = `https://api-para-sistema.vercel.app//api/usuarios/verificar/${token}`;
+    // 👉 DEBUG: loguea antes de enviar
+    console.log('Reenviando a:', usuario.email, 'link:', enlace);
 
-    // Envía el correo (usa tu función ya existente de envío)
     await enviarCorreoVerificacion(usuario.email, enlace);
 
     res.json({ mensaje: 'Correo de verificación reenviado correctamente' });
-
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Error al reenviar el correo' });
-  };
+    console.error('Error real al reenviar:', error);
+    res.status(500).json({ error: error.message }); // ← mostrar detalle temporalmente
+  }
+};
 
-}
 
 
 module.exports = {

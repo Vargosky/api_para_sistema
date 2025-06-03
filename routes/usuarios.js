@@ -6,7 +6,8 @@ const dotenv = require('dotenv');
 const jwt = require('jsonwebtoken');
 const Usuario = require('../models/Usuario');
 
-const urlBase = 'https://api-para-sistema.vercel.app/';
+// const urlBase = 'https://api-para-sistema-git-estructura-modular-vargoskys-projects.vercel.app'; // direccion de la api antigua
+const urlBase = 'https://api-para-sistema.vercel.app'; // direccion de la api nueva 
 
 const {
   registrarUsuario,
