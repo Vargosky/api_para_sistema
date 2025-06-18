@@ -1,6 +1,6 @@
 //model/Actividad.js
 const mongoose = require('mongoose');
-
+const { Schema } = mongoose; 
 const actividadSchema = new Schema({
     planId:   { type:Schema.Types.ObjectId, ref:"Plan", index:true },
     nombre:   String,
@@ -10,4 +10,4 @@ const actividadSchema = new Schema({
 
 
 
-module.exports = mongoose('Actividad', actividadSchema);
+  module.exports = mongoose.model('Actividad', actividadSchema);
