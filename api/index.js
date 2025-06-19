@@ -5,6 +5,7 @@ const cors = require('cors');
 const connectToDatabase = require('../lib/db');
 const usuariosRoutes = require('../routes/usuarios');
 const actividadesRoutes = require('../routes/actividades');
+const planesRoutes = require('../routes/planes');
 
 dotenv.config();
 
@@ -17,6 +18,7 @@ app.use(express.json());
 // ✅ Rutas
 app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/actividades', actividadesRoutes);
+app.use('/api/planes', planesRoutes);
 
 // 🧪 Ruta de prueba
 app.get('/api', (req, res) => {
