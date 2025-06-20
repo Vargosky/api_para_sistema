@@ -18,7 +18,7 @@ app.use(express.json());
 // ✅ Rutas
 app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/actividades', actividadesRoutes);
-app.use('/api/planes', planesRoutes);
+// app.use('/api/planes', planesRoutes);
 
 // 🧪 Ruta de prueba
 app.get('/api', (req, res) => {
